@@ -3,22 +3,23 @@ module Data.Number.Sqrts
   (
 
     Sqrts (toMap)
-  , toDouble
-  , toCReal
-  , toList
   , fromList
   , fromMap
+  , toCReal
+  , toDouble
+  , toList
   , sqrtRat
   , solveQuadEq
   , tryRational
   , reduce
+  , reduceGps
 
   ) where
 
 
 import Data.List (partition)
-import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as M
+import Data.Maybe (fromJust)
 import Data.Number.CReal (CReal)
 import Data.Ratio (Ratio, denominator, numerator, (%))
 import Math.NumberTheory.Logarithms (naturalLog2)
@@ -28,15 +29,8 @@ import Numeric.Natural (Natural)
 
 
 
-{------------
-   data Sqrts
-   ------------}
-
--- Representing expressions of the form
---   b1 * sqrt(c1) + b2 * sqrt(c2) + ... + bn * sqrt(cn)
--- for rational numbers bi, nonnegative rational numbers ci and a finite
--- number n.
-
+-- |The 'Sqrts' type implements exact calculations with linear combinations of
+-- square roots of nonnegative rational numbers.
 newtype Sqrts = Sqrts { toMap :: M.Map (Ratio Natural) Rational }
 
 toList = M.toList . toMap
@@ -44,8 +38,15 @@ fromList = Sqrts . M.filter (/= 0) .  M.fromListWith (+) .
   filter (\(c,_) -> c /= 0)
 fromMap = Sqrts . M.filterWithKey (\c b -> c /= 0 && b /= 0)
 
+-- |Takes the exact square root of a nonnegative rational number.
+sqrtRat :: Ratio Natural  -- ^ The nonnegative rational number
+        -> Sqrts          -- ^ Its square root
 sqrtRat q = Sqrts $ if q /= 0 then M.singleton q 1 else M.empty
--- Solves a*x^2+b*x+c=0 for x.
+-- |Solves the quadratic equation @a*x^2+b*x+c=0@ for @x@.
+solveQuadEq :: Rational  -- ^ The coefficient @a@
+            -> Rational  -- ^ The coefficient @b@
+            -> Rational  -- ^ The coefficient @c@
+            -> [Sqrts]   -- ^ The list of solutions
 solveQuadEq a b c
   | a == 0 && b == 0 = if c /= 0 then [] else error "Maxop.Sqrts.solveQuadEq"
   | a == 0 && b /= 0 = [ fromRational (-c/b) ]
