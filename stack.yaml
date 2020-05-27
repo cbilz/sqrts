@@ -1,8 +1,8 @@
-resolver: lts-15.13
+resolver: lts-15.14
 
 packages:
 - .
 
 extra-deps:
 - git: https://github.com/cbilz/numbers.git
-  commit: 31d7a578cb8f36472fd3ea44c72cf1875467365e
+  commit: 0c2cdd00ba73cbcaf9030d5c67bfb11232df7649
