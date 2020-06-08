@@ -209,22 +209,27 @@ instance Fractional Sqrts where
 
 instance Show Sqrts where
   showsPrec p x
-    | null lst = showsPrec p (0 :: Integer)
+    | null lst = showString "0"
     | [(c,b)] <- lst = showSepSqrt p (c,b)
     | otherwise =
         showParen (p >= 7) $
-        foldr (.) (showSepSqrt 6 $ last lst) $
-          map (\y -> showSepSqrt 6 y . showString " + ") $
-          init lst
+        showSepSqrt (if p < 7 then p else 0) (head lst) .
+        (foldr (.) (showString "") $
+          map (\(c,b) -> if b >= 0
+                            then showString " + " . showSepSqrt 6 (c,b)
+                            else showString " - " . showSepSqrt 6 (c,-b)) $
+          tail lst)
     where lst = toList x
 
 showSepSqrt p (c,b)
   | c /= 1 = showParen (p >= 8) $
-      showRat 7 b . showString " * sqrtRat(" . showRat 0 c . showString ")"
+      showRat (if p < 8 then p else 0) b .
+      showString " * sqrtRat(" . showRat 0 c . showString ")"
   | otherwise = showRat p b
 
 showRat p x
-  | d /= 1
-    = showParen (p >= 8) $ showsPrec 7 n . showString "/" . showsPrec 7 d
-  | otherwise = showsPrec (p+1) n
+  | d /= 1 = showParen (p >= 8) $
+    (showParen ((p == 6 || p == 7) && n < 0) $ shows n) .
+    showString "/" . showsPrec 7 d
+  | otherwise = showParen (p >= 6 && n < 0) $ shows n
   where (n, d) = (numerator x, denominator x)
