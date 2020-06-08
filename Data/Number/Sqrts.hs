@@ -209,13 +209,22 @@ instance Fractional Sqrts where
 
 instance Show Sqrts where
   showsPrec p x
-    | null lst = showString "0"
+    | null lst = showsPrec p (0 :: Integer)
+    | [(c,b)] <- lst = showSepSqrt p (c,b)
     | otherwise =
         showParen (p >= 7) $
-        foldr (.) (showSqrt $ last lst) $
-          map (\y -> showSqrt y . showString " + ") $
+        foldr (.) (showSepSqrt 6 $ last lst) $
+          map (\y -> showSepSqrt 6 y . showString " + ") $
           init lst
     where lst = toList x
 
-showSqrt (c,b) =
-  showsPrec 7 b . showString " * sqrt(" . showsPrec 0 c . showString ")"
+showSepSqrt p (c,b)
+  | c /= 1 = showParen (p >= 8) $
+      showRat 7 b . showString " * sqrtRat(" . showRat 0 c . showString ")"
+  | otherwise = showRat p b
+
+showRat p x
+  | d /= 1
+    = showParen (p >= 8) $ showsPrec 7 n . showString "/" . showsPrec 7 d
+  | otherwise = showsPrec (p+1) n
+  where (n, d) = (numerator x, denominator x)
